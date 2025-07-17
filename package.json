@@ -1,6 +1,7 @@
 {
   "name": "tiktok-clone",
   "version": "1.0.0",
+  "description": "A fully functional TikTok clone built with React Native Expo",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
@@ -29,5 +30,24 @@
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },
+  "keywords": [
+    "react-native",
+    "expo",
+    "tiktok",
+    "clone",
+    "video",
+    "social-media",
+    "mobile-app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/tiktok-clone.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/tiktok-clone/issues"
+  },
+  "homepage": "https://github.com/yourusername/tiktok-clone#readme",
   "private": true
 }

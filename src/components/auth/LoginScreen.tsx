@@ -8,38 +8,31 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Animated,
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { ValidationService } from '../../utils/validation';
-import { theme, responsive, mixins, utils } from '../../styles/utils';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   
-  const { signIn, loading, error, clearError, retryLastOperation } = useAuth();
+  const { signIn } = useAuth();
 
   const handleLogin = async () => {
-    // Validate form inputs
-    const validation = ValidationService.validateSignInForm(email, password);
-    if (!validation.isValid && validation.error) {
-      Alert.alert('Validation Error', validation.error.message);
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
+    setLoading(true);
     try {
       await signIn(email, password);
       // Navigation will happen automatically due to auth state change
     } catch (error: any) {
-      // Error is already handled by AuthContext and stored in context state
-      // We can show additional UI feedback here if needed
+      Alert.alert('Login Error', error.message);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleRetry = () => {
-    clearError();
-    retryLastOperation();
   };
 
   return (
@@ -54,7 +47,7 @@ export default function LoginScreen({ navigation }: any) {
         <TextInput
           style={styles.input}
           placeholder="Email"
-          placeholderTextColor={theme.colors.text.muted}
+          placeholderTextColor="#666"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
@@ -65,23 +58,12 @@ export default function LoginScreen({ navigation }: any) {
         <TextInput
           style={styles.input}
           placeholder="Password"
-          placeholderTextColor={theme.colors.text.muted}
+          placeholderTextColor="#666"
           value={password}
           onChangeText={setPassword}
           secureTextEntry
           autoCapitalize="none"
         />
-
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error.message}</Text>
-            {error.recoverable && (
-              <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -109,77 +91,57 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: '#000',
   },
   content: {
     flex: 1,
-    ...mixins.center,
-    paddingHorizontal: theme.spacing[8],
+    justifyContent: 'center',
+    paddingHorizontal: 32,
   },
   title: {
-    fontSize: responsive.fontSize('4xl'),
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.text.primary,
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
     textAlign: 'center',
-    marginBottom: theme.spacing[3],
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: responsive.fontSize('base'),
-    color: theme.colors.text.muted,
+    fontSize: 16,
+    color: '#666',
     textAlign: 'center',
-    marginBottom: theme.spacing[10],
-    fontWeight: theme.typography.fontWeights.medium,
+    marginBottom: 48,
   },
   input: {
-    ...mixins.input.base,
-    marginBottom: theme.spacing[4],
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
   },
   button: {
-    ...mixins.button.primary,
-    marginTop: theme.spacing[3],
-    width: '100%',
+    backgroundColor: '#ff0050',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 16,
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   buttonText: {
-    color: theme.colors.white,
-    fontSize: responsive.fontSize('lg'),
-    fontWeight: theme.typography.fontWeights.bold,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   linkButton: {
-    marginTop: theme.spacing[5],
+    marginTop: 24,
     alignItems: 'center',
-    paddingVertical: theme.spacing[2],
   },
   linkText: {
-    color: theme.colors.primary,
-    fontSize: responsive.fontSize('base'),
-    fontWeight: theme.typography.fontWeights.medium,
-  },
-  errorContainer: {
-    backgroundColor: theme.colors.error || '#FF3B30',
-    padding: theme.spacing[3],
-    borderRadius: theme.spacing[2],
-    marginBottom: theme.spacing[4],
-    width: '100%',
-  },
-  errorText: {
-    color: theme.colors.white,
-    fontSize: responsive.fontSize('sm'),
-    textAlign: 'center',
-    marginBottom: theme.spacing[2],
-  },
-  retryButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[2],
-    borderRadius: theme.spacing[1],
-    alignSelf: 'center',
-  },
-  retryButtonText: {
-    color: theme.colors.white,
-    fontSize: responsive.fontSize('sm'),
-    fontWeight: theme.typography.fontWeights.medium,
+    color: '#ff0050',
+    fontSize: 16,
   },
 });

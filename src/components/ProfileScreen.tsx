@@ -1,51 +1,70 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { theme, responsive, mixins } from '../styles/utils';
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error: any) {
+              Alert.alert('Error', 'Failed to logout');
+            }
+          }
+        },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.profileSection}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.displayName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
-          </Text>
+      <View style={styles.content}>
+        <View style={styles.profileSection}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {user?.email?.charAt(0).toUpperCase() || 'U'}
+            </Text>
+          </View>
+          
+          <Text style={styles.email}>{user?.email}</Text>
+          <Text style={styles.subtitle}>TikTok Clone User</Text>
         </View>
-        <Text style={styles.displayName}>
-          {user?.displayName || 'User'}
-        </Text>
-        <Text style={styles.email}>{user?.email}</Text>
-      </View>
 
-      <View style={styles.statsSection}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Following</Text>
+        <View style={styles.statsSection}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statLabel}>Likes</Text>
+          </View>
         </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Followers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>Likes</Text>
-        </View>
-      </View>
 
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutButtonText}>Sign Out</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -53,67 +72,73 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
-    padding: theme.spacing[5],
+    backgroundColor: '#000',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingTop: 60,
   },
   profileSection: {
     alignItems: 'center',
-    marginTop: theme.spacing[10],
-    marginBottom: theme.spacing[10],
+    marginBottom: 40,
   },
   avatar: {
-    ...mixins.avatar('2xl'),
-    backgroundColor: theme.colors.primary,
-    marginBottom: theme.spacing[4],
-    ...theme.shadows.md,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#ff0050',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   avatarText: {
-    fontSize: responsive.fontSize('3xl'),
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.white,
-  },
-  displayName: {
-    fontSize: responsive.fontSize('2xl'),
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing[1],
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   email: {
-    fontSize: responsive.fontSize('base'),
-    color: theme.colors.text.muted,
-    fontWeight: theme.typography.fontWeights.medium,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
   },
   statsSection: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: theme.spacing[10],
-    paddingVertical: theme.spacing[5],
+    marginBottom: 40,
+    paddingVertical: 20,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: theme.colors.gray[700],
+    borderColor: '#333',
   },
   statItem: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: responsive.fontSize('xl'),
-    fontWeight: theme.typography.fontWeights.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing[1],
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
   },
   statLabel: {
-    fontSize: responsive.fontSize('sm'),
-    color: theme.colors.text.muted,
-    fontWeight: theme.typography.fontWeights.medium,
+    fontSize: 14,
+    color: '#666',
   },
-  signOutButton: {
-    ...mixins.button.secondary,
-    marginTop: theme.spacing[5],
-    width: '100%',
+  logoutButton: {
+    backgroundColor: '#333',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 20,
   },
-  signOutButtonText: {
-    color: theme.colors.text.primary,
-    fontSize: responsive.fontSize('base'),
-    fontWeight: theme.typography.fontWeights.bold,
+  logoutText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

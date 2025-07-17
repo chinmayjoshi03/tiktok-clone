@@ -17,8 +17,8 @@ export class ErrorReportingService {
 
   // Log error for debugging and potential reporting
   static logError(
-    error: AppError, 
-    context: string, 
+    error: AppError,
+    context: string,
     userId?: string
   ): void {
     const errorReport: ErrorReport = {
@@ -34,7 +34,7 @@ export class ErrorReportingService {
 
     // Add to queue
     this.errorQueue.push(errorReport);
-    
+
     // Keep queue size manageable
     if (this.errorQueue.length > this.maxQueueSize) {
       this.errorQueue.shift();
@@ -92,7 +92,7 @@ export class ErrorReportingService {
     // - Bugsnag
     // - Firebase Crashlytics
     // - Custom error reporting endpoint
-    
+
     try {
       // Example implementation:
       // await fetch('https://your-error-reporting-endpoint.com/errors', {

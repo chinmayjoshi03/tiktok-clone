@@ -2,206 +2,221 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  FlatList,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
+  FlatList,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { theme, responsive, mixins } from '../styles/utils';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Comment {
   id: string;
-  username: string;
   text: string;
-  timestamp: string;
+  author: {
+    username: string;
+    avatar: string;
+  };
+  timestamp: Date;
   likes: number;
 }
 
 interface CommentsScreenProps {
-  videoId?: string;
-  onClose?: () => void;
+  route: {
+    params: {
+      videoId: string;
+    };
+  };
+  navigation: any;
 }
 
-export default function CommentsScreen({ videoId, onClose }: CommentsScreenProps) {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const routeVideoId = (route.params as any)?.videoId || videoId;
-  const [commentText, setCommentText] = useState('');
+export default function CommentsScreen({ route, navigation }: CommentsScreenProps) {
+  const { videoId } = route.params;
+  const { user } = useAuth();
+  const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<Comment[]>([
     {
       id: '1',
-      username: 'user123',
       text: 'This is amazing! 🔥',
-      timestamp: '2h',
+      author: {
+        username: 'user123',
+        avatar: 'https://picsum.photos/100/100?random=10',
+      },
+      timestamp: new Date('2024-01-15T10:30:00Z'),
       likes: 12,
     },
     {
       id: '2',
-      username: 'cooluser',
       text: 'Love this content! Keep it up 👏',
-      timestamp: '1h',
+      author: {
+        username: 'cooluser',
+        avatar: 'https://picsum.photos/100/100?random=11',
+      },
+      timestamp: new Date('2024-01-15T11:15:00Z'),
       likes: 8,
     },
     {
       id: '3',
-      username: 'viewer99',
-      text: 'How did you do this?',
-      timestamp: '45m',
-      likes: 3,
+      text: 'How did you do this? Tutorial please!',
+      author: {
+        username: 'learner_99',
+        avatar: 'https://picsum.photos/100/100?random=12',
+      },
+      timestamp: new Date('2024-01-15T12:00:00Z'),
+      likes: 5,
     },
   ]);
 
   const handleAddComment = () => {
-    if (commentText.trim()) {
-      const newComment: Comment = {
+    if (newComment.trim()) {
+      const comment: Comment = {
         id: Date.now().toString(),
-        username: 'currentuser',
-        text: commentText.trim(),
-        timestamp: 'now',
+        text: newComment.trim(),
+        author: {
+          username: user?.email?.split('@')[0] || 'You',
+          avatar: 'https://picsum.photos/100/100?random=99',
+        },
+        timestamp: new Date(),
         likes: 0,
       };
-      setComments([newComment, ...comments]);
-      setCommentText('');
+
+      setComments([comment, ...comments]);
+      setNewComment('');
     }
   };
 
   const handleLikeComment = (commentId: string) => {
-    setComments(comments.map(comment => 
-      comment.id === commentId 
+    setComments(comments.map(comment =>
+      comment.id === commentId
         ? { ...comment, likes: comment.likes + 1 }
         : comment
     ));
   };
 
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+    if (diffInMinutes < 1) return 'now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+    return `${Math.floor(diffInMinutes / 1440)}d`;
+  };
+
   const renderComment = ({ item }: { item: Comment }) => (
     <View style={styles.commentItem}>
-      <View style={styles.commentAvatar}>
-        <Text style={styles.commentAvatarText}>
-          {item.username.charAt(0).toUpperCase()}
-        </Text>
-      </View>
+      <Image source={{ uri: item.author.avatar }} style={styles.commentAvatar} />
       <View style={styles.commentContent}>
         <View style={styles.commentHeader}>
-          <Text style={styles.commentUsername}>{item.username}</Text>
-          <Text style={styles.commentTimestamp}>{item.timestamp}</Text>
+          <Text style={styles.commentUsername}>{item.author.username}</Text>
+          <Text style={styles.commentTime}>{formatTimeAgo(item.timestamp)}</Text>
         </View>
         <Text style={styles.commentText}>{item.text}</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.likeButton}
           onPress={() => handleLikeComment(item.id)}
         >
-          <Ionicons name="heart-outline" size={theme.layout.icon.sm} color={theme.colors.text.muted} />
-          <Text style={styles.likeCount}>{item.likes}</Text>
+          <Text style={styles.likeText}>❤️ {item.likes}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => onClose ? onClose() : navigation.goBack()} 
-            style={styles.closeButton}
-          >
-            <Ionicons name="close" size={theme.layout.icon.base} color={theme.colors.text.primary} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Comments</Text>
-          <View style={styles.placeholder} />
-        </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>✕</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Comments</Text>
+        <View style={styles.placeholder} />
+      </View>
 
-        {/* Comments List */}
-        <FlatList
-          data={comments}
-          renderItem={renderComment}
-          keyExtractor={(item) => item.id}
-          style={styles.commentsList}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.commentsContainer}
+      {/* Comments List */}
+      <FlatList
+        data={comments}
+        renderItem={renderComment}
+        keyExtractor={(item) => item.id}
+        style={styles.commentsList}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* Add Comment Input */}
+      <View style={styles.inputContainer}>
+        <Image
+          source={{ uri: 'https://picsum.photos/100/100?random=99' }}
+          style={styles.userAvatar}
         />
-
-        {/* Comment Input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Add a comment..."
-            placeholderTextColor={theme.colors.text.muted}
-            value={commentText}
-            onChangeText={setCommentText}
-            multiline
-            maxLength={200}
-          />
-          <TouchableOpacity 
-            style={[
-              styles.sendButton,
-              { opacity: commentText.trim() ? 1 : 0.5 }
-            ]}
-            onPress={handleAddComment}
-            disabled={!commentText.trim()}
-          >
-            <Ionicons name="send" size={theme.layout.icon.base} color={theme.colors.primary} />
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Add a comment..."
+          placeholderTextColor="#666"
+          value={newComment}
+          onChangeText={setNewComment}
+          multiline
+          maxLength={200}
+        />
+        <TouchableOpacity
+          style={[styles.sendButton, !newComment.trim() && styles.sendButtonDisabled]}
+          onPress={handleAddComment}
+          disabled={!newComment.trim()}
+        >
+          <Text style={styles.sendButtonText}>Post</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
+    paddingHorizontal: 16,
+    paddingTop: 50,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray[700],
+    borderBottomColor: '#333',
   },
-  closeButton: {
-    padding: theme.spacing[1],
+  backButton: {
+    fontSize: 24,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   headerTitle: {
-    color: theme.colors.text.primary,
-    fontSize: responsive.fontSize('lg'),
-    fontWeight: theme.typography.fontWeights.bold,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   placeholder: {
-    width: theme.spacing[8],
+    width: 24,
   },
   commentsList: {
     flex: 1,
-  },
-  commentsContainer: {
-    paddingVertical: theme.spacing[4],
+    paddingHorizontal: 16,
   },
   commentItem: {
     flexDirection: 'row',
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
   },
   commentAvatar: {
-    ...mixins.avatar('sm'),
-    backgroundColor: theme.colors.primary,
-    marginRight: theme.spacing[3],
-  },
-  commentAvatarText: {
-    color: theme.colors.white,
-    fontSize: responsive.fontSize('sm'),
-    fontWeight: theme.typography.fontWeights.bold,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
   },
   commentContent: {
     flex: 1,
@@ -209,54 +224,69 @@ const styles = StyleSheet.create({
   commentHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing[1],
+    marginBottom: 4,
   },
   commentUsername: {
-    color: theme.colors.text.primary,
-    fontSize: responsive.fontSize('sm'),
-    fontWeight: theme.typography.fontWeights.semibold,
-    marginRight: theme.spacing[2],
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginRight: 8,
   },
-  commentTimestamp: {
-    color: theme.colors.text.muted,
-    fontSize: responsive.fontSize('xs'),
+  commentTime: {
+    fontSize: 12,
+    color: '#666',
   },
   commentText: {
-    color: theme.colors.text.primary,
-    fontSize: responsive.fontSize('sm'),
-    lineHeight: theme.typography.lineHeights.normal * responsive.fontSize('sm'),
-    marginBottom: theme.spacing[2],
+    fontSize: 14,
+    color: '#fff',
+    lineHeight: 20,
+    marginBottom: 8,
   },
   likeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignSelf: 'flex-start',
   },
-  likeCount: {
-    color: theme.colors.text.muted,
-    fontSize: responsive.fontSize('xs'),
-    marginLeft: theme.spacing[1],
+  likeText: {
+    fontSize: 12,
+    color: '#666',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray[700],
-    backgroundColor: theme.colors.background.secondary,
+    borderTopColor: '#333',
+    backgroundColor: '#000',
+  },
+  userAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
   },
   textInput: {
     flex: 1,
-    backgroundColor: theme.colors.background.tertiary,
-    borderRadius: theme.borderRadius.full,
-    paddingHorizontal: theme.spacing[4],
-    paddingVertical: theme.spacing[3],
-    color: theme.colors.text.primary,
-    fontSize: responsive.fontSize('sm'),
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: '#fff',
     maxHeight: 100,
-    marginRight: theme.spacing[3],
+    marginRight: 8,
   },
   sendButton: {
-    padding: theme.spacing[2],
+    backgroundColor: '#ff0050',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#333',
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

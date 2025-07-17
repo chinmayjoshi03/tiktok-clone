@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "lib": ["es2017", "es2018", "es2019"],
+    "lib": [
+      "es2017",
+      "es2018",
+      "es2019"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -22,5 +26,6 @@
     "node_modules",
     "lib",
     "bin"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

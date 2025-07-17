@@ -18,9 +18,9 @@ export default function AppNavigator() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <LoadingSpinner 
-          size="large" 
-          message="Loading..." 
+        <LoadingSpinner
+          size="large"
+          message="Loading..."
           color="#0000ff"
         />
       </View>
